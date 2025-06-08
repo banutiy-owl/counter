@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Rainbow Counter</title>
+    <style>
+      body {
+        margin: 0;
+        height: 100vh;
+        background-color: green;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        transition: background-color 0.5s ease;
+      }
+
+      .container {
+        text-align: center;
+        font-family: sans-serif;
+      }
+
+      h1 {
+        color: white;
+        margin-bottom: 20px;
+      }
+
+      #counter {
+        font-size: 5rem;
+        margin: 20px 0;
+      }
+
+      button {
+        font-size: 2rem;
+        margin: 0 10px;
+        padding: 10px 20px;
+        cursor: pointer;
+        border: none;
+        border-radius: 10px;
+        background: #fff;
+        color: #333;
+      }
+
+      .rainbow {
+        animation: rainbow-flare 2s linear;
+      }
+
+      @keyframes rainbow-flare {
+        0% {
+          background-color: red;
+        }
+        20% {
+          background-color: orange;
+        }
+        40% {
+          background-color: yellow;
+        }
+        60% {
+          background-color: green;
+        }
+        80% {
+          background-color: blue;
+        }
+        100% {
+          background-color: violet;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Counter of cigarettes smoked by Hüse</h1>
+      <div id="counter">0</div>
+      <button onclick="changeCounter(-1)">-</button>
+      <button onclick="changeCounter(1)">+</button>
+    </div>
+
+    <script>
+      let count = 0;
+      const counterEl = document.getElementById("counter");
+
+      function changeCounter(delta) {
+        count += delta;
+        counterEl.textContent = count;
+        triggerRainbow();
+      }
+
+      function triggerRainbow() {
+        const body = document.body;
+
+        // Remove and force reflow
+        body.classList.remove("rainbow");
+        void body.offsetWidth;
+
+        // Add rainbow class to start animation
+        requestAnimationFrame(() => {
+          body.classList.add("rainbow");
+        });
+
+        // After animation, set background back to green
+        setTimeout(() => {
+          body.classList.remove("rainbow");
+          body.style.backgroundColor = "green";
+        }, 2000);
+      }
+    </script>
+  </body>
+</html>
