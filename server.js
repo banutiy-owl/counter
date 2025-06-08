@@ -1,13 +1,15 @@
+require('dotenv').config();
 const express = require("express");
 const { MongoClient } = require("mongodb");
 const path = require("path");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Replace this with your actual MongoDB Atlas URI
-const uri =
-  "mongodb+srv://admin:admin123@counterhuse.folt1ek.mongodb.net/?retryWrites=true&w=majority&appName=counterHuse";
-const client = new MongoClient(uri);
+const uri = process.env.MONGO_URI;
+const client = new MongoClient(uri, {
+  tls: true,
+  serverSelectionTimeoutMS: 5000,
+});
 let db, collection;
 
 app.use(express.json());
