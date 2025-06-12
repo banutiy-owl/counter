@@ -135,8 +135,25 @@ button {
   padding: 10px 15px;
   font-size: 1rem;
   background-color: #ffffff66;
+
   border: none;
   border-radius: 8px;
   cursor: pointer;
   color: white;
 }
+
+#toggleDuckTrail {
+  position: fixed;
+  bottom: 70px;
+  right: 20px;
+  padding: 10px 15px;
+  font-size: 1rem;
+  background-color: #ffffff66;
+
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  color: white;
+}
+
+

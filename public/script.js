@@ -2,6 +2,75 @@ const counterEl = document.getElementById('counter');
 const statsEl = document.getElementById('stats');
 let currentCount = 0;
 
+const quackSound = new Audio("/quack.mp3");
+
+document.getElementById('quack-button').addEventListener('click', () => {
+  quackSound.currentTime = 0;
+  quackSound.play().catch(e => console.error("Sound play error:", e));
+});
+
+
+/*
+const app = new PIXI.Application({
+  width: window.innerWidth,
+  height: window.innerHeight,
+  transparent: true,
+  backgroundAlpha: 0,
+  resizeTo: window
+});
+
+app
+  .init()
+  .then(async () => {
+    const container = document.getElementById('duck-container');
+    if (!container) {
+      console.error('Element #duck-container not found');
+      return;
+    }
+
+    container.appendChild(app.view);
+ const canvas = app.view;
+ app.renderer.style.background="rgba(0,0,0,0.1)"
+    canvas.style.position = 'absolute';
+    canvas.style.top = '0';
+    canvas.style.left = '0';
+    canvas.style.width = '100vw';
+    canvas.style.height = '100vh';
+    canvas.style.pointerEvents = 'none';
+    canvas.style.background = 'transparent';
+    canvas.style.zIndex = '1';
+
+
+
+    const duckTexture = await PIXI.Assets.load(
+      "https://cdn-icons-png.flaticon.com/512/1521/1521260.png"
+    );
+
+    const duck = new PIXI.Sprite(duckTexture);
+    duck.anchor.set(0.5);
+    duck.width = 72;
+    duck.height = 64;
+    duck.x = 100;
+    duck.y = 100;
+
+    app.stage.addChild(duck);
+
+    let dx = 2, dy = 1.5;
+
+    app.ticker.add(() => {
+      duck.x += dx;
+      duck.y += dy;
+
+      if (duck.x < 32 || duck.x > window.innerWidth - 32) dx *= -1;
+      if (duck.y < 32 || duck.y > window.innerHeight - 32) dy *= -1;
+    });
+  })
+  .catch(err => {
+    console.error("PIXI app initialization failed:", err);
+  });
+*/
+
+
 let emojiTrailEnabled = false;
 let emojiListener = null;
 
@@ -39,6 +108,45 @@ document.getElementById('toggleEmojiTrail').addEventListener('click', () => {
     disableEmojiTrail();
   }
 });
+
+let duckTrailEnabled = false;
+let duckListener = null;
+
+function enableDuckTrail() {
+  if (duckListener) return;
+
+  duckListener = (e) => {
+    const duck = document.createElement('span');
+    duck.textContent = '🦆';
+    duck.style.position = 'absolute';
+    duck.style.left = `${e.pageX}px`;
+    duck.style.top = `${e.pageY}px`;
+    duck.style.fontSize = '20px';
+    duck.style.pointerEvents = 'none';
+    duck.style.transition = 'opacity 0.5s ease';
+    document.body.appendChild(duck);
+    setTimeout(() => duck.remove(), 500);
+  };
+
+  document.addEventListener('mousemove', duckListener);
+}
+
+function disableDuckTrail() {
+  if (duckListener) {
+    document.removeEventListener('mousemove', duckListener);
+    duckListener = null;
+  }
+}
+
+document.getElementById('toggleDuckTrail').addEventListener('click', () => {
+  duckTrailEnabled = !duckTrailEnabled;
+  if (duckTrailEnabled) {
+    enableDuckTrail();
+  } else {
+    disableDuckTrail();
+  }
+});
+
 
 
 function changeCounter(delta) {
