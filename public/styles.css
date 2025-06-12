@@ -31,16 +31,28 @@ button {
 }
 
 @keyframes rainbow-flare {
-  0%   { background-color: red; }
-  20%  { background-color: orange; }
-  40%  { background-color: yellow; }
-  60%  { background-color: green; }
-  80%  { background-color: blue; }
-  100% { background-color: violet; }
+  0% {
+    background-color: red;
+  }
+  20% {
+    background-color: orange;
+  }
+  40% {
+    background-color: yellow;
+  }
+  60% {
+    background-color: green;
+  }
+  80% {
+    background-color: blue;
+  }
+  100% {
+    background-color: violet;
+  }
 }
 
 .stats {
-  width: 200px;
+  width: 28vh;
   padding: 20px;
   color: white;
   background: rgba(0, 0, 0, 0.3);
@@ -77,4 +89,54 @@ button {
   color: #333;
   border: none;
   cursor: pointer;
+}
+
+.stat-entry {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 10px;
+  border-bottom: 1px solid #ffffff33;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+.stat-date {
+  display: flex;
+  gap: 6px;
+  flex: 1;
+  align-items: center;
+}
+
+.stat-day {
+  min-width: 25px;
+  text-align: right;
+}
+
+.stat-month {
+  min-width: 80px;
+  text-align: left;
+}
+
+.stat-year {
+  min-width: 30px;
+  text-align: right;
+}
+
+.stat-count {
+  min-width: 60px;
+  text-align: right;
+}
+
+
+#toggleEmojiTrail {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 10px 15px;
+  font-size: 1rem;
+  background-color: #ffffff66;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  color: white;
 }
