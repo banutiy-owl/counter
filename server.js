@@ -1,51 +1,79 @@
 require('dotenv').config();
-const express = require("express");
-const { MongoClient } = require("mongodb");
-const path = require("path");
+const express = require('express');
+const path = require('path');
+const { Pool } = require('pg');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-const uri = process.env.MONGO_URI;
-const client = new MongoClient(uri, {
-  tls: true,
-  serverSelectionTimeoutMS: 5000,
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    require: true,
+    rejectUnauthorized: false
+  }
 });
-let db, collection;
 
 app.use(express.json());
-app.use(express.static("public"));
+app.use(express.static('public'));
 
-async function connectDB() {
-  await client.connect();
-  db = client.db("counterApp");
-  collection = db.collection("stats");
+// Create table if not exists on startup
+async function createTable() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS stats (
+      date DATE PRIMARY KEY,
+      count INTEGER NOT NULL
+    );
+  `);
 }
 
-app.get("/api/stats", async (req, res) => {
-  const stats = await collection.find({}).toArray();
-  const result = {};
-  stats.forEach(({ date, count }) => {
-    result[date] = count;
-  });
-  res.json(result);
+app.get('/api/stats', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT date, count FROM stats ORDER BY date');
+    const data = {};
+    result.rows.forEach(({ date, count }) => {
+      // date comes as a Date object, convert to ISO string (yyyy-mm-dd)
+      data[date.toISOString().split('T')[0]] = count;
+    });
+    res.json(data);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Database error' });
+  }
 });
 
-app.post("/api/update", async (req, res) => {
-  const today = new Date().toISOString().split("T")[0];
-  const delta = req.body.delta;
+app.post('/api/update', async (req, res) => {
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    const delta = Number(req.body.delta);
 
-  const doc = await collection.findOne({ date: today });
-  const newCount = (doc?.count || 0) + delta;
+    // Try to get existing count for today
+    const existing = await pool.query('SELECT count FROM stats WHERE date = $1', [today]);
 
-  await collection.updateOne(
-    { date: today },
-    { $set: { count: newCount } },
-    { upsert: true }
-  );
+    let newCount = delta;
+    if (existing.rows.length > 0) {
+      newCount += existing.rows[0].count;
+      await pool.query('UPDATE stats SET count = $1 WHERE date = $2', [newCount, today]);
+    } else {
+      await pool.query('INSERT INTO stats(date, count) VALUES($1, $2)', [today, newCount]);
+    }
 
-  res.json({ count: newCount });
+    res.json({ count: newCount });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Database error' });
+  }
 });
 
-connectDB().then(() => {
-  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-});
+async function startServer() {
+  try {
+    await createTable();
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error('Failed to start server:', error);
+  }
+}
+
+startServer();
