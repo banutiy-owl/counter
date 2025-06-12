@@ -1,39 +1,39 @@
 require('dotenv').config();
 const express = require('express');
 const path = require('path');
-const { Pool } = require('pg');
+const mongoose = require('mongoose');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: {
-    require: true,
-    rejectUnauthorized: false
-  }
+// MongoDB connection
+mongoose.connect(process.env.DATABASE_URL, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+}).then(() => console.log('Connected to MongoDB'))
+  .catch(err => console.error('MongoDB connection error:', err));
+
+// Define schema and model
+const statsSchema = new mongoose.Schema({
+  date: { type: String, required: true, unique: true },
+  count: { type: Number, required: true }
 });
+const Stats = mongoose.model('stats', statsSchema);
 
 app.use(express.json());
 app.use(express.static('public'));
 
-// Create table if not exists on startup
+// Simulate "createTable" for MongoDB (not required, but keeping structure)
 async function createTable() {
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS stats (
-      date DATE PRIMARY KEY,
-      count INTEGER NOT NULL
-    );
-  `);
+  // No-op for MongoDB; collection is created automatically
 }
 
 app.get('/api/stats', async (req, res) => {
   try {
-    const result = await pool.query('SELECT date, count FROM stats ORDER BY date');
+    const result = await Stats.find().sort({ date: 1 });
     const data = {};
-    result.rows.forEach(({ date, count }) => {
-      // date comes as a Date object, convert to ISO string (yyyy-mm-dd)
-      data[date.toISOString().split('T')[0]] = count;
+    result.forEach(({ date, count }) => {
+      data[date] = count;
     });
     res.json(data);
   } catch (error) {
@@ -48,14 +48,14 @@ app.post('/api/update', async (req, res) => {
     const delta = Number(req.body.delta);
 
     // Try to get existing count for today
-    const existing = await pool.query('SELECT count FROM stats WHERE date = $1', [today]);
+    const existing = await Stats.findOne({ date: today });
 
     let newCount = delta;
-    if (existing.rows.length > 0) {
-      newCount += existing.rows[0].count;
-      await pool.query('UPDATE stats SET count = $1 WHERE date = $2', [newCount, today]);
+    if (existing) {
+      newCount += existing.count;
+      await Stats.updateOne({ date: today }, { count: newCount });
     } else {
-      await pool.query('INSERT INTO stats(date, count) VALUES($1, $2)', [today, newCount]);
+      await Stats.create({ date: today, count: newCount });
     }
 
     res.json({ count: newCount });
@@ -67,7 +67,7 @@ app.post('/api/update', async (req, res) => {
 
 async function startServer() {
   try {
-    await createTable();
+    await createTable(); // Does nothing for MongoDB, but kept for structure
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
     });
